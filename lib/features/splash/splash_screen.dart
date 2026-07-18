@@ -1,6 +1,9 @@
+import 'package:continua/features/home/data/models/course_progress_model.dart';
 import 'package:continua/features/home/presentation/screens/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:continua/core/di/injection_container.dart' as di;
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -14,16 +17,6 @@ class _SplashScreenState extends State<SplashScreen>
   late final AnimationController _controller;
   late final Animation<double> _scaleAnimation;
   late final Animation<double> _fadeAnimation;
-  Future<void> _goToHome() async {
-    await Future.delayed(const Duration(seconds: 2));
-
-    if (!mounted) return;
-
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => const HomeScreen()),
-    );
-  }
 
   String? _errorMessage;
 
@@ -33,11 +26,11 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1000),
+      duration: const Duration(seconds: 7),
     );
 
     _scaleAnimation = Tween<double>(
-      begin: 0.7,
+      begin: 0.5,
       end: 1.0,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
 
@@ -46,9 +39,43 @@ class _SplashScreenState extends State<SplashScreen>
       end: 1.0,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeIn));
 
-    _controller.forward();
+    // نستنى أول frame فعلي يترسم قبل ما نبدأ السباق بين الاتنين
+    WidgetsBinding.instance.addPostFrameCallback((_) => _runSplashSequence());
+  }
 
-    _goToHome();
+  /// التحميل الحقيقي (Hive + DI) لوحده، من غير أي مهلة تعسفية
+  Future<void> _runInitialization() async {
+    await Hive.initFlutter();
+    if (!Hive.isAdapterRegistered(0)) {
+      Hive.registerAdapter(CourseProgressModelAdapter());
+    }
+    await Hive.openBox<CourseProgressModel>('course_progress_box');
+    await di.init();
+  }
+
+  /// بتستنى التحميل والـ animation مع بعض، وتنتقل لما **الأطول منهم** يخلص
+  Future<void> _runSplashSequence() async {
+    setState(() => _errorMessage = null);
+
+    try {
+      await Future.wait([_controller.forward(), _runInitialization()]);
+
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = 'حصل خطأ أثناء تشغيل التطبيق، حاول تاني';
+      });
+    }
+  }
+
+  void _retry() {
+    _controller.reset();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _runSplashSequence());
   }
 
   @override
@@ -76,7 +103,7 @@ class _SplashScreenState extends State<SplashScreen>
                 );
               },
               child: SvgPicture.asset(
-                'assets/images/splash_logo.svg',
+                'assets/images/splash_second_logo.svg',
                 width: 120,
                 height: 120,
               ),
@@ -104,7 +131,7 @@ class _SplashScreenState extends State<SplashScreen>
                     ),
                     const SizedBox(height: 12),
                     ElevatedButton(
-                      onPressed: () {},
+                      onPressed: _retry,
                       child: const Text('حاول تاني'),
                     ),
                   ],

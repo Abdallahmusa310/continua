@@ -1,0 +1,15 @@
+<svg width="680" height="280" viewBox="0 0 680 280" xmlns="http://www.w3.org/2000/svg" role="img">
+<title>Continua wordmark logo</title>
+<desc>An open progress ring with a play triangle inside, next to the word Continua in a blue gradient, symbolizing resuming playback.</desc>
+<defs>
+<linearGradient id="blueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+<stop offset="0%" stop-color="#5AA9F5"/>
+<stop offset="100%" stop-color="#1E4FD6"/>
+</linearGradient>
+</defs>
+
+<circle cx="160" cy="150" r="45" fill="none" stroke="url(#blueGrad)" stroke-width="10" stroke-linecap="round" stroke-dasharray="245 38" transform="rotate(-100 160 150)"/>
+<polygon points="150,132 150,168 182,150" fill="url(#blueGrad)"/>
+
+<text x="235" y="172" font-family="sans-serif" font-size="64" font-weight="700" fill="url(#blueGrad)">Continua</text>
+</svg>
