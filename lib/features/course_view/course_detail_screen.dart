@@ -18,12 +18,9 @@ class CourseDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => getIt<CoursePlayerCubit>()
-        ..initialize(
-          courseId: course.id,
-          videoUrl: course.videoUrl,
-          fallbackDurationSeconds: course.durationSeconds, // ✅ جديد
-        ),
+      create: (_) =>
+          getIt<CoursePlayerCubit>()
+            ..initialize(courseId: course.id, videoUrl: course.videoUrl),
       child: _CourseDetailView(course: course),
     );
   }

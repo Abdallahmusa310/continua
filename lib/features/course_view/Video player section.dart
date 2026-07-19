@@ -6,11 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// القسم بتاع الفيديو — الـ Hero بيلف الصورة الثابتة بس (مش الـ BlocBuilder)
-/// عشان يفضل شغال صح وقت انتقالات الـ Hero بين الكروت.
-/// بيتغيّر شكله حسب حالة CoursePlayerCubit:
-/// Loading -> thumbnail + spinner
-/// Ready   -> الفيديو الحقيقي + controls (في ملف ready_player.dart)
-/// Error   -> رسالة خطأ + زرار إعادة المحاولة
+/// عشان يفضل شغال صح وقت انتقالات الـ Hero بين الكروت
 class VideoPlayerSection extends StatelessWidget {
   final String thumbnailUrl;
   final String courseId;
@@ -26,7 +22,6 @@ class VideoPlayerSection extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
-        // الصورة دايماً موجودة كـ خلفية/fallback، وهي بس اللي جوا الـ Hero
         Hero(
           tag: 'course_thumbnail_$courseId',
           child: CachedNetworkImage(
@@ -37,8 +32,6 @@ class VideoPlayerSection extends StatelessWidget {
                 Container(color: Colors.black),
           ),
         ),
-
-        // الـ BlocBuilder بقى sibling في الـ Stack، مش child جوا الـ Hero
         BlocBuilder<CoursePlayerCubit, CoursePlayerState>(
           builder: (context, state) {
             if (state is CoursePlayerReady) {
@@ -47,7 +40,6 @@ class VideoPlayerSection extends StatelessWidget {
             if (state is CoursePlayerError) {
               return _ErrorPlayer(message: state.message);
             }
-            // Initial أو Loading
             return const _LoadingPlayer();
           },
         ),

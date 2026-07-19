@@ -9,27 +9,23 @@ class HomeHeader extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
             'Continua',
             style: TextStyle(fontSize: 24, color: Appcolor.primarycolor),
-          ),
-          SizedBox(
-            width: 50,
-            height: 50,
-            child: Card(
-              elevation: 3,
-              color: Appcolor.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-
-              child: Icon(Icons.person, color: Appcolor.primarycolor, size: 35),
-            ),
           ),
         ],
       ),
     );
   }
 }
+  // child: Card(
+  //             elevation: 3,
+  //             color: Appcolor.white,
+  //             shape: RoundedRectangleBorder(
+  //               borderRadius: BorderRadius.circular(16),
+  //             ),
+
+  //             child: Icon(Icons.person, color: Appcolor.primarycolor, size: 35),
+  //           ),

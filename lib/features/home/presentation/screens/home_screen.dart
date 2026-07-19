@@ -84,7 +84,6 @@ class _HomeScreenView extends StatelessWidget {
                         children: courses.map((course) {
                           final CourseProgressEntity? progress =
                               progressMap[course.id];
-
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 20),
                             child: CoursesCard(

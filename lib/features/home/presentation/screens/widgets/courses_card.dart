@@ -88,9 +88,7 @@ class CoursesCard extends StatelessWidget {
                                 color: Appcolor.textcolor,
                               ),
                             ),
-
                             const SizedBox(height: 8),
-
                             Text(
                               course.description,
                               maxLines: 2,
@@ -104,9 +102,7 @@ class CoursesCard extends StatelessWidget {
                           ],
                         ),
                       ),
-
                       const SizedBox(width: 16),
-
                       Container(
                         width: 46,
                         height: 46,
@@ -122,10 +118,7 @@ class CoursesCard extends StatelessWidget {
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 16),
-
-                  /// Progress
                   ClipRRect(
                     borderRadius: BorderRadius.circular(6),
                     child: LinearProgressIndicator(
@@ -143,13 +136,11 @@ class CoursesCard extends StatelessWidget {
                   Text(
                     hasProgress
                         ? '${progressPercent.toStringAsFixed(0)}%'
-                        : 'Start course',
+                        : 'Start learning',
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: hasProgress
-                          ? Appcolor.primarycolor
-                          : Appcolor.secondtextcolor,
+                      color: Appcolor.primarycolor,
                     ),
                   ),
                 ],

@@ -11,14 +11,9 @@ class WelcmeSction extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Text(
-                'Hello ,',
-                style: TextStyle(fontSize: 24, color: Appcolor.textcolor),
-              ),
-              Text('👋', style: TextStyle(fontSize: 20)),
-            ],
+          Text(
+            'Hello ',
+            style: TextStyle(fontSize: 24, color: Appcolor.textcolor),
           ),
           SizedBox(height: 8),
           Text(

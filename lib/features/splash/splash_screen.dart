@@ -40,11 +40,9 @@ class _SplashScreenState extends State<SplashScreen>
       end: 1.0,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeIn));
 
-    // نستنى أول frame فعلي يترسم قبل ما نبدأ السباق بين الاتنين
     WidgetsBinding.instance.addPostFrameCallback((_) => _runSplashSequence());
   }
 
-  /// التحميل الحقيقي (Hive + DI) لوحده، من غير أي مهلة تعسفية
   Future<void> _runInitialization() async {
     await Hive.initFlutter();
     if (!Hive.isAdapterRegistered(0)) {
@@ -54,7 +52,6 @@ class _SplashScreenState extends State<SplashScreen>
     await di.init();
   }
 
-  /// بتستنى التحميل والـ animation مع بعض، وتنتقل لما **الأطول منهم** يخلص
   Future<void> _runSplashSequence() async {
     setState(() => _errorMessage = null);
 
@@ -121,10 +118,8 @@ class _SplashScreenState extends State<SplashScreen>
                 ),
               ),
             ),
-            const SizedBox(height: 32),
-            if (_errorMessage == null)
-              const CircularProgressIndicator()
-            else
+            if (_errorMessage != null) ...[
+              const SizedBox(height: 32),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 32),
                 child: Column(
@@ -142,6 +137,7 @@ class _SplashScreenState extends State<SplashScreen>
                   ],
                 ),
               ),
+            ],
           ],
         ),
       ),

@@ -6,7 +6,7 @@
             "thumbnailUrl": "https://picsum.photos/seed/course1/400/225",
             "durationSeconds": 30,
             "description": "A short primer on UI/UX fundamentals.",
-            "videoUrl": "https://cdn.pixabay.com/video/2026/07/10/363199_large.mp4"
+            "videoUrl": "https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4"
         },
         {
             "id": "c002",
@@ -14,7 +14,7 @@
             "thumbnailUrl": "https://picsum.photos/seed/course2/400/225",
             "durationSeconds": 30,
             "description": "Core concepts every marketer should know.",
-            "videoUrl": "https://cdn.pixabay.com/video/2026/03/31/343478_large.mp4"
+            "videoUrl": "https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4"
         },
         {
             "id": "c003",
@@ -22,7 +22,7 @@
             "thumbnailUrl": "https://picsum.photos/seed/course3/400/225",
             "durationSeconds": 30,
             "description": "Practical tips to speak with confidence.",
-            "videoUrl": "https://cdn.pixabay.com/video/2026/07/01/361729_large.mp4"
+            "videoUrl": "https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4"
         },
         {
             "id": "c004",
@@ -30,7 +30,7 @@
             "thumbnailUrl": "https://picsum.photos/seed/course4/400/225",
             "durationSeconds": 30,
             "description": "Spreadsheets from zero to comfortable.",
-            "videoUrl": "https://cdn.pixabay.com/video/2026/06/16/358693_large.mp4"
+            "videoUrl": "https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4"
         }
     ]
 }
