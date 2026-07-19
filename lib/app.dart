@@ -12,7 +12,7 @@ class ContinuaApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         colorSchemeSeed: Colors.indigo,
-        fontFamily: 'RobotoCondensed',
+        fontFamily: 'PlusJakartaSans',
       ),
       home: const SplashScreen(),
     );

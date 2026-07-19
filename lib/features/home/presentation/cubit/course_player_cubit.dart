@@ -1,4 +1,8 @@
 import 'dart:async';
+
+import 'package:chewie/chewie.dart';
+import 'package:flutter/material.dart';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:video_player/video_player.dart';
 
@@ -12,10 +16,12 @@ class CoursePlayerCubit extends Cubit<CoursePlayerState> {
   final SaveCourseProgressUsecase saveCourseProgressUsecase;
 
   VideoPlayerController? controller;
+  ChewieController? chewieController;
 
   Timer? _saveTimer;
   String? _courseId;
   String? _videoUrl;
+  Duration _fallbackDuration = Duration.zero;
 
   CoursePlayerCubit({
     required this.getCourseProgressUsecase,
@@ -25,65 +31,99 @@ class CoursePlayerCubit extends Cubit<CoursePlayerState> {
   Future<void> initialize({
     required String courseId,
     required String videoUrl,
+    int fallbackDurationSeconds = 0,
   }) async {
+    debugPrint('DEBUG: fallbackDurationSeconds = $fallbackDurationSeconds');
     _courseId = courseId;
     _videoUrl = videoUrl;
+    _fallbackDuration = Duration(seconds: fallbackDurationSeconds);
 
     emit(const CoursePlayerLoading());
 
     try {
-      // 1. هات آخر نقطة وقف عندها المستخدم (لو موجودة)
       final progressResult = await getCourseProgressUsecase(courseId);
-      if (isClosed) return; // الشاشة اتقفلت وإحنا لسه بنستنى نتيجة async
+      if (isClosed) return;
 
       final savedProgress = progressResult.fold(
         (failure) => CourseProgressEntity.empty(courseId),
         (progress) => progress,
       );
 
-      // 2. جهّز الفيديو
       final newController = VideoPlayerController.networkUrl(
         Uri.parse(videoUrl),
       );
       await newController.initialize();
 
       if (isClosed) {
-        // الشاشة اتقفلت وإحنا لسه بنحمل الفيديو — نضف الـ controller ومنعملش emit
         await newController.dispose();
         return;
       }
 
-      // 3. لو فيه progress محفوظ ومش completed، اعمل seek لآخر نقطة
       if (!savedProgress.isCompleted && savedProgress.positionSeconds > 0) {
         await newController.seekTo(
           Duration(seconds: savedProgress.positionSeconds),
         );
-
         if (isClosed) {
           await newController.dispose();
           return;
         }
       }
 
-      controller = newController;
-      _startAutoSaveTimer();
+      final newChewieController = ChewieController(
+        videoPlayerController: newController,
+        autoPlay: false,
+        looping: false,
+        showControls: false, // ✅ بنعطّل الـ UI الجاهزة بتاعت Chewie
+      );
 
-      emit(const CoursePlayerReady());
+      controller = newController;
+      chewieController = newChewieController;
+
+      newController.addListener(_onVideoTick);
+      _startAutoSaveTimer();
+      _emitReady();
     } catch (e) {
       if (isClosed) return;
       emit(const CoursePlayerError('الفيديو مقدرش يتحمل، حاول تاني'));
     }
   }
 
-  /// إعادة محاولة تحميل نفس الفيديو (edge case: فشل تحميل الفيديو)
+  /// المدة الفعّالة: الحقيقية لو معروفة، وإلا الـ fallback من الـ JSON
+  Duration get _effectiveDuration {
+    final real = controller?.value.duration ?? Duration.zero;
+    return real > Duration.zero ? real : _fallbackDuration;
+  }
+
+  void _onVideoTick() {
+    if (isClosed) return;
+    _emitReady();
+  }
+
+  void _emitReady() {
+    final c = controller;
+    if (c == null || !c.value.isInitialized) return;
+
+    emit(
+      CoursePlayerReady(
+        position: c.value.position,
+        duration: _effectiveDuration,
+        isPlaying: c.value.isPlaying,
+      ),
+    );
+  }
+
   Future<void> retry() async {
     if (_courseId == null || _videoUrl == null) return;
-    await initialize(courseId: _courseId!, videoUrl: _videoUrl!);
+    await _disposePlayers();
+    await initialize(
+      courseId: _courseId!,
+      videoUrl: _videoUrl!,
+      fallbackDurationSeconds: _fallbackDuration.inSeconds,
+    );
   }
 
   void _startAutoSaveTimer() {
     _saveTimer?.cancel();
-    // بنحفظ الـ progress كل 3 ثواني وقت التشغيل، مش كل frame
     _saveTimer = Timer.periodic(
       const Duration(seconds: 3),
       (_) => _persistProgress(),
@@ -96,7 +136,7 @@ class CoursePlayerCubit extends Cubit<CoursePlayerState> {
 
     if (c.value.isPlaying) {
       await c.pause();
-      await _persistProgress(); // بنحفظ فوراً وقت الـ pause
+      await _persistProgress();
     } else {
       await c.play();
     }
@@ -115,8 +155,8 @@ class CoursePlayerCubit extends Cubit<CoursePlayerState> {
     final courseId = _courseId;
     if (c == null || courseId == null || !c.value.isInitialized) return;
 
-    final durationSeconds = c.value.duration.inSeconds;
-    if (durationSeconds == 0) return;
+    final durationSeconds = _effectiveDuration.inSeconds;
+    if (durationSeconds == 0) return; // مفيش ولا fallback معروف، متسجلش
 
     final positionSeconds = c.value.position.inSeconds;
     final percent = (positionSeconds / durationSeconds * 100)
@@ -130,16 +170,22 @@ class CoursePlayerCubit extends Cubit<CoursePlayerState> {
       updatedAt: DateTime.now(),
     );
 
-    // مفيش emit هنا خالص، فمحتاجاش isClosed check — بس الحفظ نفسه آمن يتنفذ
-    // حتى لو الـ Cubit في طريقه للإغلاق (بيتنادى من close() كمان)
     await saveCourseProgressUsecase(progress);
+  }
+
+  Future<void> _disposePlayers() async {
+    _saveTimer?.cancel();
+    controller?.removeListener(_onVideoTick);
+    chewieController?.dispose();
+    chewieController = null;
+    await controller?.dispose();
+    controller = null;
   }
 
   @override
   Future<void> close() async {
-    _saveTimer?.cancel();
-    await _persistProgress(); // حفظ أخير وقت الخروج من الشاشة
-    await controller?.dispose();
+    await _persistProgress();
+    await _disposePlayers();
     return super.close();
   }
 }

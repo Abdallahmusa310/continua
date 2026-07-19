@@ -1,3 +1,4 @@
+import 'package:continua/core/const/app_color.dart';
 import 'package:continua/features/home/data/models/course_progress_model.dart';
 import 'package:continua/features/home/presentation/screens/home_screen.dart';
 import 'package:flutter/material.dart';
@@ -26,7 +27,7 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 7),
+      duration: const Duration(seconds: 5),
     );
 
     _scaleAnimation = Tween<double>(
@@ -108,12 +109,16 @@ class _SplashScreenState extends State<SplashScreen>
                 height: 120,
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 15),
             FadeTransition(
               opacity: _fadeAnimation,
               child: const Text(
-                'Course Player',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
+                'Learning evry day',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w600,
+                  color: Appcolor.textcolor,
+                ),
               ),
             ),
             const SizedBox(height: 32),
@@ -132,7 +137,7 @@ class _SplashScreenState extends State<SplashScreen>
                     const SizedBox(height: 12),
                     ElevatedButton(
                       onPressed: _retry,
-                      child: const Text('حاول تاني'),
+                      child: const Text('Tray again'),
                     ),
                   ],
                 ),
