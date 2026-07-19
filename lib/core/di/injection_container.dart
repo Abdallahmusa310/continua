@@ -7,6 +7,7 @@ import 'package:continua/features/home/domain/usecases/get_course_progress_useca
 import 'package:continua/features/home/domain/usecases/get_courses_usecase.dart';
 import 'package:continua/features/home/domain/usecases/save_course_progress_usecase.dart';
 import 'package:continua/features/home/presentation/cubit/course_list_cubit.dart';
+import 'package:continua/features/home/presentation/cubit/course_player_cubit.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive/hive.dart';
 
@@ -52,6 +53,12 @@ Future<void> init() async {
     () => CourseListCubit(
       getCoursesUsecase: getIt<GetCoursesUsecase>(),
       getCourseProgressUsecase: getIt<GetCourseProgressUsecase>(),
+    ),
+  );
+  getIt.registerFactory(
+    () => CoursePlayerCubit(
+      getCourseProgressUsecase: getIt<GetCourseProgressUsecase>(),
+      saveCourseProgressUsecase: getIt<SaveCourseProgressUsecase>(),
     ),
   );
 }

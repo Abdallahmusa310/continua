@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:continua/features/course_view/course_detail_screen.dart';
 import 'package:continua/features/home/presentation/cubit/course_list_cubit.dart';
 import 'package:continua/features/home/presentation/cubit/course_list_state.dart';
 import 'package:continua/features/home/presentation/screens/widgets/course_card.dart';
@@ -104,7 +105,54 @@ class _HomeView extends StatelessWidget {
                         course: course,
                         progressPercent: progress?.percent ?? 0,
                         onTap: () {
-                          // TODO: Navigator.push -> CourseDetailScreen(course: course)
+                          Navigator.push(
+                            context,
+                            PageRouteBuilder(
+                              transitionDuration: const Duration(
+                                milliseconds: 400,
+                              ),
+                              reverseTransitionDuration: const Duration(
+                                milliseconds: 300,
+                              ),
+                              pageBuilder:
+                                  (context, animation, secondaryAnimation) =>
+                                      CourseDetailScreen(
+                                        course: course,
+                                        progressPercent: progress?.percent ?? 0,
+                                      ),
+                              transitionsBuilder:
+                                  (
+                                    context,
+                                    animation,
+                                    secondaryAnimation,
+                                    child,
+                                  ) {
+                                    final curved = CurvedAnimation(
+                                      parent: animation,
+                                      curve: Curves.easeOutCubic,
+                                    );
+                                    return SlideTransition(
+                                      position: Tween<Offset>(
+                                        begin: const Offset(
+                                          0,
+                                          0.12,
+                                        ), // بتيجي من تحت شوية
+                                        end: Offset.zero,
+                                      ).animate(curved),
+                                      child: ScaleTransition(
+                                        scale: Tween<double>(
+                                          begin: 0.94,
+                                          end: 1.0,
+                                        ).animate(curved),
+                                        child: FadeTransition(
+                                          opacity: curved,
+                                          child: child,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                            ),
+                          );
                         },
                       );
                     },
