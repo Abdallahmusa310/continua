@@ -136,7 +136,7 @@ class CoursesCard extends StatelessWidget {
                   Text(
                     hasProgress
                         ? '${progressPercent.toStringAsFixed(0)}%'
-                        : 'Start learning',
+                        : "Start Learning",
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,

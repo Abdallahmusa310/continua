@@ -36,7 +36,6 @@ dependencies:
   cupertino_icons: ^1.0.8
   dio: ^5.10.0
   get_it: ^9.2.1
-  media_kit: ^1.2.6
   video_player: ^2.13.0
   cached_network_image: ^3.4.1
   connectivity_plus: ^7.3.0
@@ -48,6 +47,7 @@ dependencies:
   intl: ^0.20.3
   chewie: ^1.14.1
   flutter_svg: ^2.3.0
+  mocktail: ^1.0.5
 
 dev_dependencies:
   flutter_test:
