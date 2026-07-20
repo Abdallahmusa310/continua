@@ -76,7 +76,7 @@ class _HomeScreenView extends StatelessWidget {
                       if (courses.isEmpty) {
                         return const Padding(
                           padding: EdgeInsets.symmetric(vertical: 40),
-                          child: Center(child: Text('لا يوجد كورسات حالياً')),
+                          child: Center(child: Text('No courses')),
                         );
                       }
 

@@ -11,9 +11,7 @@ class ReadyPlayer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final chewieController = context.read<CoursePlayerCubit>().chewieController;
-
     if (chewieController == null) {
-      // حالة دفاعية، مفروض معدّيهاش لو الـ state Ready
       return Container(color: Colors.black);
     }
 

@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:chewie/chewie.dart';
+import 'package:continua/core/const/app_color.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:video_player/video_player.dart';
 
@@ -36,7 +38,6 @@ class CoursePlayerCubit extends Cubit<CoursePlayerState> {
     emit(const CoursePlayerLoading());
 
     try {
-      // 1. هات آخر نقطة وقف عندها المستخدم (لو موجودة)
       final progressResult = await getCourseProgressUsecase(courseId);
       if (isClosed) return;
 
@@ -68,7 +69,6 @@ class CoursePlayerCubit extends Cubit<CoursePlayerState> {
         }
       }
 
-      // 4. جهّز ChewieController فوق نفس الـ VideoPlayerController
       final newChewieController = ChewieController(
         videoPlayerController: newController,
         autoPlay: false,
@@ -78,11 +78,19 @@ class CoursePlayerCubit extends Cubit<CoursePlayerState> {
         showControlsOnInitialize: false,
         playbackSpeeds: const [0.5, 1.0, 1.25, 1.5, 2.0],
         materialProgressColors: ChewieProgressColors(
-          playedColor: const Color(0xff9B5DE5), // بربل
+          playedColor: Appcolor.primarycolor,
           bufferedColor: Colors.white54,
           backgroundColor: Colors.white24,
-          handleColor: const Color(0xff9B5DE5),
+          handleColor: Appcolor.primarycolor,
         ),
+        deviceOrientationsOnEnterFullScreen: const [
+          DeviceOrientation.landscapeLeft,
+          DeviceOrientation.landscapeRight,
+        ],
+        deviceOrientationsAfterFullScreen: const [
+          DeviceOrientation.portraitUp,
+          DeviceOrientation.portraitDown,
+        ],
       );
 
       controller = newController;
@@ -96,7 +104,6 @@ class CoursePlayerCubit extends Cubit<CoursePlayerState> {
     }
   }
 
-  /// إعادة محاولة تحميل نفس الفيديو (edge case: فشل تحميل الفيديو)
   Future<void> retry() async {
     if (_courseId == null || _videoUrl == null) return;
     await _disposePlayers();
@@ -105,7 +112,6 @@ class CoursePlayerCubit extends Cubit<CoursePlayerState> {
 
   void _startAutoSaveTimer() {
     _saveTimer?.cancel();
-    // بنحفظ الـ progress كل 3 ثواني وقت التشغيل، مش كل frame
     _saveTimer = Timer.periodic(
       const Duration(seconds: 3),
       (_) => _persistProgress(),
@@ -118,7 +124,7 @@ class CoursePlayerCubit extends Cubit<CoursePlayerState> {
 
     if (c.value.isPlaying) {
       await c.pause();
-      await _persistProgress(); // بنحفظ فوراً وقت الـ pause
+      await _persistProgress();
     } else {
       await c.play();
     }

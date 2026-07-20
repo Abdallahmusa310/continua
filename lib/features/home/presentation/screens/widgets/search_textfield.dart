@@ -1,5 +1,7 @@
 import 'package:continua/core/const/app_color.dart';
+import 'package:continua/features/home/presentation/cubit/course_list_cubit.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class SearchTextfield extends StatelessWidget {
   const SearchTextfield({super.key});
@@ -22,6 +24,8 @@ class SearchTextfield extends StatelessWidget {
           ],
         ),
         child: TextField(
+          onChanged: (value) =>
+              context.read<CourseListCubit>().searchCourses(value),
           decoration: InputDecoration(
             hintText: 'Search courses...',
             hintStyle: TextStyle(color: Appcolor.secondtextcolor, fontSize: 16),

@@ -102,20 +102,6 @@ class CoursesCard extends StatelessWidget {
                           ],
                         ),
                       ),
-                      const SizedBox(width: 16),
-                      Container(
-                        width: 46,
-                        height: 46,
-                        decoration: BoxDecoration(
-                          color: Appcolor.primarycolor,
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: const Icon(
-                          Icons.arrow_forward_ios_rounded,
-                          color: Colors.white,
-                          size: 18,
-                        ),
-                      ),
                     ],
                   ),
                   const SizedBox(height: 16),
