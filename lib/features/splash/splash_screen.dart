@@ -110,7 +110,7 @@ class _SplashScreenState extends State<SplashScreen>
             FadeTransition(
               opacity: _fadeAnimation,
               child: const Text(
-                'Learning evry day',
+                'Learning evrey day',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.w600,

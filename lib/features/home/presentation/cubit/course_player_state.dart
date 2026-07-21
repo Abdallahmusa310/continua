@@ -16,7 +16,18 @@ class CoursePlayerLoading extends CoursePlayerState {
 }
 
 class CoursePlayerReady extends CoursePlayerState {
-  const CoursePlayerReady();
+  final Duration position;
+  final Duration duration;
+  final bool isPlaying;
+
+  const CoursePlayerReady({
+    required this.position,
+    required this.duration,
+    required this.isPlaying,
+  });
+
+  @override
+  List<Object?> get props => [position, duration, isPlaying];
 }
 
 class CoursePlayerError extends CoursePlayerState {

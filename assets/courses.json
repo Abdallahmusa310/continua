@@ -4,25 +4,25 @@
             "id": "c001",
             "title": "Intro to UI/UX Design",
             "thumbnailUrl": "https://picsum.photos/seed/course1/400/225",
-            "durationSeconds": 30,
+            "durationSeconds": 46,
             "description": "A short primer on UI/UX fundamentals.",
-            "videoUrl": "https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4"
+            "videoUrl": "https://filesamples.com/samples/video/mp4/sample_960x400_ocean_with_audio.mp4"
         },
         {
             "id": "c002",
             "title": "Digital Marketing Basics",
             "thumbnailUrl": "https://picsum.photos/seed/course2/400/225",
-            "durationSeconds": 30,
+            "durationSeconds": 70,
             "description": "Core concepts every marketer should know.",
-            "videoUrl": "https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4"
+            "videoUrl": "https://developer.mozilla.org/shared-assets/videos/tears-of-steel-battle-clip-medium.mp4"
         },
         {
             "id": "c003",
             "title": "Public Speaking Confidence",
             "thumbnailUrl": "https://picsum.photos/seed/course3/400/225",
-            "durationSeconds": 30,
+            "durationSeconds": 5,
             "description": "Practical tips to speak with confidence.",
-            "videoUrl": "https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4"
+            "videoUrl": "https://developer.mozilla.org/shared-assets/videos/flower.mp4"
         },
         {
             "id": "c004",
@@ -30,7 +30,7 @@
             "thumbnailUrl": "https://picsum.photos/seed/course4/400/225",
             "durationSeconds": 30,
             "description": "Spreadsheets from zero to comfortable.",
-            "videoUrl": "https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4"
+            "videoUrl": "https://samplelib.com/lib/preview/mp4/sample-30s.mp4"
         }
     ]
 }

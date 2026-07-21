@@ -5,8 +5,6 @@ import 'package:continua/features/home/presentation/cubit/course_player_state.da
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-/// القسم بتاع الفيديو — الـ Hero بيلف الصورة الثابتة بس (مش الـ BlocBuilder)
-/// عشان يفضل شغال صح وقت انتقالات الـ Hero بين الكروت
 class VideoPlayerSection extends StatelessWidget {
   final String thumbnailUrl;
   final String courseId;
@@ -35,7 +33,7 @@ class VideoPlayerSection extends StatelessWidget {
         BlocBuilder<CoursePlayerCubit, CoursePlayerState>(
           builder: (context, state) {
             if (state is CoursePlayerReady) {
-              return const ReadyPlayer();
+              return Container(color: Colors.black, child: const ReadyPlayer());
             }
             if (state is CoursePlayerError) {
               return _ErrorPlayer(message: state.message);
@@ -92,7 +90,7 @@ class _ErrorPlayer extends StatelessWidget {
                   side: const BorderSide(color: Colors.white),
                 ),
                 onPressed: () => context.read<CoursePlayerCubit>().retry(),
-                child: const Text('حاول تاني'),
+                child: const Text('tray again'),
               ),
             ],
           ),

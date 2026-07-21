@@ -1,12 +1,9 @@
 import 'dart:async';
-
 import 'package:chewie/chewie.dart';
-import 'package:continua/core/const/app_color.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:video_player/video_player.dart';
-
 import '../../../home/domain/entities/course_progress_entity.dart';
 import '../../../home/domain/usecases/get_course_progress_usecase.dart';
 import '../../../home/domain/usecases/save_course_progress_usecase.dart';
@@ -22,22 +19,48 @@ class CoursePlayerCubit extends Cubit<CoursePlayerState> {
   Timer? _saveTimer;
   String? _courseId;
   String? _videoUrl;
+  Duration _fallbackDuration = Duration.zero;
+
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
+  bool _wasOffline = false;
+  bool _isHandlingError = false;
 
   CoursePlayerCubit({
     required this.getCourseProgressUsecase,
     required this.saveCourseProgressUsecase,
-  }) : super(const CoursePlayerInitial());
+  }) : super(const CoursePlayerInitial()) {
+    _listenToConnectivity();
+  }
 
   Future<void> initialize({
     required String courseId,
     required String videoUrl,
+    int fallbackDurationSeconds = 0,
   }) async {
     _courseId = courseId;
     _videoUrl = videoUrl;
+    _fallbackDuration = Duration(seconds: fallbackDurationSeconds);
+    _isHandlingError = false;
 
     emit(const CoursePlayerLoading());
 
     try {
+      // 0. Check connectivity first — before attempting to load anything
+      final connectivityResult = await Connectivity().checkConnectivity();
+      final hasConnection = !connectivityResult.contains(
+        ConnectivityResult.none,
+      );
+
+      if (!hasConnection) {
+        if (isClosed) return;
+        emit(
+          const CoursePlayerError(
+            'No internet connection. Please check your network and try again.',
+          ),
+        );
+        return;
+      }
+
       final progressResult = await getCourseProgressUsecase(courseId);
       if (isClosed) return;
 
@@ -46,7 +69,6 @@ class CoursePlayerCubit extends Cubit<CoursePlayerState> {
         (progress) => progress,
       );
 
-      // 2. جهّز الفيديو من الشبكة مباشرة (streaming)
       final newController = VideoPlayerController.networkUrl(
         Uri.parse(videoUrl),
       );
@@ -57,7 +79,6 @@ class CoursePlayerCubit extends Cubit<CoursePlayerState> {
         return;
       }
 
-      // 3. لو فيه progress محفوظ ومش completed، اعمل seek لآخر نقطة
       if (!savedProgress.isCompleted && savedProgress.positionSeconds > 0) {
         await newController.seekTo(
           Duration(seconds: savedProgress.positionSeconds),
@@ -71,43 +92,116 @@ class CoursePlayerCubit extends Cubit<CoursePlayerState> {
 
       final newChewieController = ChewieController(
         videoPlayerController: newController,
-        autoPlay: false,
+        autoPlay: true,
         looping: false,
         allowFullScreen: true,
         allowMuting: true,
         showControlsOnInitialize: false,
+        aspectRatio: 16 / 9,
         playbackSpeeds: const [0.5, 1.0, 1.25, 1.5, 2.0],
         materialProgressColors: ChewieProgressColors(
-          playedColor: Appcolor.primarycolor,
+          playedColor: const Color(0xff9B5DE5),
           bufferedColor: Colors.white54,
           backgroundColor: Colors.white24,
-          handleColor: Appcolor.primarycolor,
+          handleColor: const Color(0xff9B5DE5),
         ),
-        deviceOrientationsOnEnterFullScreen: const [
-          DeviceOrientation.landscapeLeft,
-          DeviceOrientation.landscapeRight,
-        ],
-        deviceOrientationsAfterFullScreen: const [
-          DeviceOrientation.portraitUp,
-          DeviceOrientation.portraitDown,
-        ],
       );
 
       controller = newController;
       chewieController = newChewieController;
-      _startAutoSaveTimer();
 
-      emit(const CoursePlayerReady());
+      newController.addListener(_onVideoTick);
+      _startAutoSaveTimer();
+      _emitReady();
     } catch (e) {
       if (isClosed) return;
-      emit(const CoursePlayerError('الفيديو مقدرش يتحمل، حاول تاني'));
+      final connectivityResult = await Connectivity().checkConnectivity();
+      final hasConnection = !connectivityResult.contains(
+        ConnectivityResult.none,
+      );
+
+      if (isClosed) return;
+
+      emit(
+        CoursePlayerError(
+          hasConnection
+              ? 'This video could not be loaded. Please try again.'
+              : 'No internet connection. Please check your network and try again.',
+        ),
+      );
     }
   }
 
+  /// is always accurate; only `duration` needs this fallback.
+  Duration get _effectiveDuration {
+    if (_fallbackDuration > Duration.zero) {
+      return _fallbackDuration;
+    }
+    return controller?.value.duration ?? Duration.zero;
+  }
+
+  void _onVideoTick() {
+    if (isClosed || _isHandlingError) return;
+
+    final c = controller;
+
+    if (c != null && c.value.hasError) {
+      _isHandlingError = true;
+      _persistProgress();
+      emit(const CoursePlayerError('Connection lost. Please try again.'));
+      return;
+    }
+
+    _emitReady();
+  }
+
+  void _emitReady() {
+    final c = controller;
+    if (c == null || !c.value.isInitialized) return;
+
+    emit(
+      CoursePlayerReady(
+        position: c.value.position,
+        duration: _effectiveDuration,
+        isPlaying: c.value.isPlaying,
+      ),
+    );
+  }
+
+  void _listenToConnectivity() {
+    _connectivitySubscription = Connectivity().onConnectivityChanged.listen((
+      results,
+    ) async {
+      final isOffline =
+          results.isEmpty || results.every((r) => r == ConnectivityResult.none);
+
+      // النت قطع فعليًا وإحنا وسط تشغيل — نظهر رسالة الخطأ فورًا،
+      // مش منستنى المشغل يعترف بمشكلة (غالبًا مش هيعترف أصلًا وقت buffering)
+      if (isOffline && !_wasOffline && state is CoursePlayerReady) {
+        await _persistProgress();
+        if (!isClosed) {
+          emit(const CoursePlayerError('Connection lost. Please try again.'));
+        }
+      }
+
+      // النت رجع وكنا في حالة Error — نعيد المحاولة تلقائيًا
+      if (_wasOffline && !isOffline && state is CoursePlayerError) {
+        await retry();
+      }
+
+      _wasOffline = isOffline;
+    });
+  }
+
+  /// Retry with the same courseId/videoUrl/fallback duration already stored
   Future<void> retry() async {
     if (_courseId == null || _videoUrl == null) return;
     await _disposePlayers();
-    await initialize(courseId: _courseId!, videoUrl: _videoUrl!);
+    await initialize(
+      courseId: _courseId!,
+      videoUrl: _videoUrl!,
+      fallbackDurationSeconds: _fallbackDuration.inSeconds,
+    );
   }
 
   void _startAutoSaveTimer() {
@@ -130,13 +224,21 @@ class CoursePlayerCubit extends Cubit<CoursePlayerState> {
     }
   }
 
+  Future<void> seekTo(Duration position) async {
+    await controller?.seekTo(position);
+  }
+
+  Future<void> setSpeed(double speed) async {
+    await controller?.setPlaybackSpeed(speed);
+  }
+
   Future<void> _persistProgress() async {
     final c = controller;
     final courseId = _courseId;
     if (c == null || courseId == null || !c.value.isInitialized) return;
 
-    final durationSeconds = c.value.duration.inSeconds;
-    if (durationSeconds == 0) return;
+    final durationSeconds = _effectiveDuration.inSeconds;
+    if (durationSeconds == 0) return; // no real or fallback duration known
 
     final positionSeconds = c.value.position.inSeconds;
     final percent = (positionSeconds / durationSeconds * 100)
@@ -155,6 +257,7 @@ class CoursePlayerCubit extends Cubit<CoursePlayerState> {
 
   Future<void> _disposePlayers() async {
     _saveTimer?.cancel();
+    controller?.removeListener(_onVideoTick);
     chewieController?.dispose();
     chewieController = null;
     await controller?.dispose();
@@ -163,8 +266,9 @@ class CoursePlayerCubit extends Cubit<CoursePlayerState> {
 
   @override
   Future<void> close() async {
-    await _persistProgress(); // حفظ أخير وقت الخروج من الشاشة
+    await _persistProgress();
     await _disposePlayers();
+    await _connectivitySubscription?.cancel();
     return super.close();
   }
 }
